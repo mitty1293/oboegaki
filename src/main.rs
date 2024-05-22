@@ -1,4 +1,5 @@
 use getopts::Options;
+use std::env;
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, BufWriter};
 use serde::{Deserialize, Serialize};
@@ -122,5 +123,42 @@ fn copy_command(matches: &getopts::Matches) {
 }
 
 fn main() {
-    println!("Hello, world!");
+    let args: Vec<String> = env::args().collect();
+    let primary_command = args[0].clone();
+
+    let mut opts = Options::new();
+    opts.optopt("", "command", "command to add", "COMMAND");
+    opts.optopt("", "category", "category of the command", "CATEGORY");
+    opts.optopt("", "note", "note for the command", "NOTE");
+    opts.optopt("", "index", "index of the command to run or copy", "INDEX");
+    opts.optflag("h", "help", "print this help menu");
+
+    let matches = match opts.parse(&args[1..]) {
+        Ok(m) => m,
+        Err(f) => {
+            eprintln!("Error: {}", f);
+            print_help(&primary_command, opts);
+            return;
+        }
+    };
+
+    if matches.opt_present("h") {
+        print_help(&primary_command, opts);
+        return;
+    }
+
+    if let Some(subcommand) = args.get(1) {
+        match subcommand.as_str() {
+            "add" => add_command(&matches),
+            "list" => list_commands(),
+            "run" => run_command(&matches),
+            "copy" => copy_command(&matches),
+            _ => {
+                eprintln!("Unknown command: {}", subcommand);
+                print_help(&primary_command, opts);
+            }
+        }
+    } else {
+        print_help(&primary_command, opts);
+    }
 }
