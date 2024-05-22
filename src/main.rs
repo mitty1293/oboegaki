@@ -54,7 +54,14 @@ fn save_entries(entries: &Vec<Entry>) {
 }
 
 fn print_help(entered_command: &str, opts: Options) {
-    let brief: String = format!("Usage: {} [options]", entered_command);
+    let brief: String = format!(
+        "Usage: {} <subcommand> [options]\n\nSubcommands:\n\
+        \tadd    Add a new command\n\
+        \tlist   List all registered commands\n\
+        \trun    Run a command by its index\n\
+        \tcopy   Copy a command to clipboard by its index\n",
+        entered_command
+    );
     print!("{}", opts.usage(&brief));
 }
 
