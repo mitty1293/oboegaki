@@ -3,7 +3,6 @@ use std::env;
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, BufWriter};
 use serde::{Deserialize, Serialize};
-use arboard::Clipboard;
 
 const DATA_FILE: &str = "oboegaki.json";
 
@@ -114,16 +113,22 @@ fn run_command(matches: &getopts::Matches) {
     }
 }
 
-fn copy_command(matches: &getopts::Matches) {
+fn delete_command(matches: &getopts::Matches) {
     let index: usize = matches.opt_str("index").unwrap().parse().unwrap_or_else(|e| {
         eprintln!("Failed to parse index: {}", e);
         std::process::exit(1);
     });
-    let entries = load_entries();
-    if let Some(entry) = entries.get(index - 1) {
-        let mut clipboard = Clipboard::new().unwrap();
-        clipboard.set_text(entry.command.clone()).unwrap();
-        println!("Copied to clipboard: {}", entry.command);
+    let mut entries = load_entries();
+    if index <= entries.len() {
+        let delete_entry = entries.remove(index - 1);
+        save_entries(&entries);
+        println!(
+            "Deleted: {}. [{}] {} - {}",
+            index,
+            delete_entry.category,
+            delete_entry.command,
+            delete_entry.note
+        );
     } else {
         println!("Invalid command index.");
     }
@@ -159,7 +164,7 @@ fn main() {
             "add" => add_command(&matches),
             "list" => list_commands(),
             "run" => run_command(&matches),
-            "copy" => copy_command(&matches),
+            "delete" => delete_command(&matches),
             _ => {
                 eprintln!("Unknown command: {}", subcommand);
                 print_help(&primary_command, opts);
