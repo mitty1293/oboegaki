@@ -2,6 +2,7 @@ use getopts::Options;
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, BufWriter};
 use serde::{Deserialize, Serialize};
+use arboard::Clipboard;
 
 const DATA_FILE: &str = "oboegaki.json";
 
@@ -71,18 +72,18 @@ fn add_command(matches: &getopts::Matches) {
     println!("Command added.");
 }
 
-fn list_command() {
+fn list_commands() {
     let entries: Vec<Entry> = load_entries();
     if entries.is_empty() {
         println!("No commands registered.");
     } else {
-        for (i, cmd) in entries.iter().enumerate() {
+        for (i, entry) in entries.iter().enumerate() {
             println!(
                 "{}. [{}] {} - {}",
                 i + 1,
-                cmd.category,
-                cmd.command,
-                cmd.note
+                entry.category,
+                entry.command,
+                entry.note
             );
         }
     }
@@ -94,6 +95,30 @@ fn run_command(matches: &getopts::Matches) {
         std::process::exit(1);
     });
     let entries = load_entries();
+    if let Some(entry) = entries.get(index - 1) {
+        println!("Running: {}", entry.command);
+        let command_segments: Vec<&str> = entry.command.split_whitespace().collect();
+        if let Some((primary_command, command_options)) = command_segments.split_first() {
+            let _ = std::process::Command::new(primary_command).args(command_options).status();
+        }
+    } else {
+        println!("Invalid command index.");
+    }
+}
+
+fn copy_command(matches: &getopts::Matches) {
+    let index: usize = matches.opt_str("index").unwrap().parse().unwrap_or_else(|e| {
+        eprintln!("Failed to parse index: {}", e);
+        std::process::exit(1);
+    });
+    let entries = load_entries();
+    if let Some(entry) = entries.get(index - 1) {
+        let mut clipboard = Clipboard::new().unwrap();
+        clipboard.set_text(entry.command.clone()).unwrap();
+        println!("Copied to clipboard: {}", entry.command);
+    } else {
+        println!("Invalid command index.");
+    }
 }
 
 fn main() {
