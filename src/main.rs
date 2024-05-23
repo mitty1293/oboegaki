@@ -3,8 +3,17 @@ use std::env;
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, BufWriter};
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
-const DATA_FILE: &str = "oboegaki.json";
+fn get_data_file_path() -> PathBuf {
+    let config_dir = env::var("XDG_CONFIG_HOME").unwrap_or_else(|_| {
+        let home_dir = env::var("HOME").expect("Failed to get home directory");
+        format!("{}/.config", home_dir)
+    });
+    let data_dir = format!("{}/oboegaki", config_dir);
+    std::fs::create_dir_all(&data_dir).expect("Failed to create config directory");
+    PathBuf::from(format!("{}/commands.json", data_dir))
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Entry {
@@ -14,7 +23,8 @@ struct Entry {
 }
 
 fn load_entries() -> Vec<Entry> {
-    match File::open(DATA_FILE) {
+    let data_file_path = get_data_file_path();
+    match File::open(&data_file_path) {
         Ok(file) => {
             let reader: BufReader<File> = BufReader::new(file);
             let entries: Vec<Entry> = serde_json::from_reader(reader).unwrap_or_else(|e| {
@@ -37,11 +47,12 @@ fn load_entries() -> Vec<Entry> {
 }
 
 fn save_entries(entries: &Vec<Entry>) {
+    let data_file_path = get_data_file_path();
     let file: File = OpenOptions::new()
         .write(true)
         .create(true)
         .truncate(true)
-        .open(DATA_FILE)
+        .open(&data_file_path)
         .unwrap_or_else(|e| {
             eprintln!("Failed to open file for writing: {}", e);
             std::process::exit(1);
