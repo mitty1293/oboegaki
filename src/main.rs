@@ -58,7 +58,7 @@ fn print_help(entered_command: &str, opts: Options) {
         \tadd    Add a new command\n\
         \tlist   List all registered commands\n\
         \trun    Run a command by its index\n\
-        \tcopy   Copy a command to clipboard by its index\n",
+        \tdelete Delete a command by its index\n",
         entered_command
     );
     print!("{}", opts.usage(&brief));
@@ -84,9 +84,11 @@ fn list_commands() {
     if entries.is_empty() {
         println!("No commands registered.");
     } else {
+        println!("{:<5} {:<10} {:<30} {:<4}", "Index", "Category", "Command", "Note");
+        println!("{:-<5} {:-<10} {:-<30} {:-<4}", "", "", "", "");
         for (i, entry) in entries.iter().enumerate() {
             println!(
-                "{}. [{}] {} - {}",
+                "{:<5} {:<10} {:<30} {}",
                 i + 1,
                 entry.category,
                 entry.command,
@@ -96,11 +98,22 @@ fn list_commands() {
     }
 }
 
+fn parse_index(matches: &getopts::Matches) -> Result<usize, String> {
+    let index = matches.opt_str("index")
+        .ok_or_else(|| "Index not provided".to_string())?
+        .parse::<usize>()
+        .map_err(|e| format!("Failed to parse index: {}", e));
+    index
+}
+
 fn run_command(matches: &getopts::Matches) {
-    let index: usize = matches.opt_str("index").unwrap().parse().unwrap_or_else(|e| {
-       eprintln!("Failed to parse index: {}", e);
-        std::process::exit(1);
-    });
+    let index = match parse_index(matches) {
+        Ok(i) => i,
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        }
+    };
     let entries = load_entries();
     if let Some(entry) = entries.get(index - 1) {
         println!("Running: {}", entry.command);
@@ -114,23 +127,26 @@ fn run_command(matches: &getopts::Matches) {
 }
 
 fn delete_command(matches: &getopts::Matches) {
-    let index: usize = matches.opt_str("index").unwrap().parse().unwrap_or_else(|e| {
-        eprintln!("Failed to parse index: {}", e);
-        std::process::exit(1);
-    });
+    let index = match parse_index(matches) {
+        Ok(i) => i,
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        }
+    };
     let mut entries = load_entries();
-    if index <= entries.len() {
+    if index == 0 || entries.len() < index {
+        println!("Invalid command index.");
+    } else {
         let delete_entry = entries.remove(index - 1);
         save_entries(&entries);
         println!(
-            "Deleted: {}. [{}] {} - {}",
+            "Command deleted: {:<5} {:<10} {:<30} {}",
             index,
             delete_entry.category,
             delete_entry.command,
             delete_entry.note
         );
-    } else {
-        println!("Invalid command index.");
     }
 }
 
@@ -142,7 +158,7 @@ fn main() {
     opts.optopt("", "command", "command to add", "COMMAND");
     opts.optopt("", "category", "category of the command", "CATEGORY");
     opts.optopt("", "note", "note for the command", "NOTE");
-    opts.optopt("", "index", "index of the command to run or copy", "INDEX");
+    opts.optopt("", "index", "index of the command to run or delete", "INDEX");
     opts.optflag("h", "help", "print this help menu");
 
     let matches = match opts.parse(&args[1..]) {
