@@ -27,7 +27,7 @@ oboegaki is a command-line tool for registering and managing frequently used com
 Alternatively, you can use the install script:
 
 ```sh
-curl -L https://github.com/mitty1293/oboegaki/releases/download/v0.1.0/install.sh | sh
+curl -L https://github.com/mitty1293/oboegaki/releases/download/v1.0.0/install.sh | sh
 ```
 
 ## Usage
