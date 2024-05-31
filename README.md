@@ -14,12 +14,15 @@ oboegaki is a command-line tool for registering and managing frequently used com
 ### Download and install the latest release
 
 1. Go to the [Releases](https://github.com/mitty1293/oboegaki/releases) page.
-2. Download the latest release binary.
-3. Make the binary executable and move it to your PATH.
+2. Download the latest release ZIP file.
+3. Unzip the file and move the binary to your PATH.
 
     ```sh
-    chmod +x obo
+    unzip obo_<version>.zip
     sudo mv obo /usr/local/bin/
+    sudo chmod +x /usr/local/bin/obo
+    sudo mkdir -p /usr/local/share/licenses/oboegaki
+    sudo mv LICENSE /usr/local/share/licenses/oboegaki/
     ```
 
 ### Use the install script
