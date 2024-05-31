@@ -9,7 +9,7 @@ VERSION=$(curl --silent "https://api.github.com/repos/$REPO/releases/latest" | j
 ZIP_NAME="obo_${VERSION}.zip"
 
 # Create download URL
-URL="https://github.com/$REPO/releases/latest/download/$VERSION/$ZIP_NAME"
+URL="https://github.com/$REPO/releases/download/$VERSION/$ZIP_NAME"
 
 # Download the ZIP file
 curl -L $URL -o /tmp/$ZIP_NAME
