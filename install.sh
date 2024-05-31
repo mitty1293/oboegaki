@@ -30,5 +30,3 @@ rm /tmp/$ZIP_NAME
 
 echo "$BIN_NAME has been installed to /usr/local/bin"
 echo "LICENSE has been moved to /usr/local/share/licenses/oboegaki"
-
-# TODO: update wiki & release
